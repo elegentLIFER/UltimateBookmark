@@ -4,7 +4,6 @@ const currentFolderName = document.getElementById('currentFolderName');
 const currentFolderSubtitle = document.getElementById('currentFolderSubtitle');
 const searchInput = document.getElementById('searchInput');
 const statusBar = document.getElementById('statusBar');
-const openFullPageBtn = document.getElementById('openFullPageBtn');
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const viewModeToggleBtn = document.getElementById('viewModeToggleBtn');
 const pathDepthLabel = document.getElementById('pathDepthLabel');
@@ -63,14 +62,6 @@ function applyTheme(theme) {
   }
 }
 
-function openFullPage() {
-  if (globalThis.chrome?.tabs?.create) {
-    chrome.tabs.create({ url: chrome.runtime.getURL('fullscreen.html') });
-    return;
-  }
-  window.open('fullscreen.html', '_blank', 'noopener,noreferrer');
-}
-
 function promptRename(currentName, label) {
   const nextName = window.prompt(`Rename ${label}`, currentName);
   if (nextName === null) return null;
@@ -118,19 +109,15 @@ function applyViewMode(mode) {
 
 function renderPermissionHelp() {
   currentFolderName.textContent = 'Permission required';
-  currentFolderSubtitle.textContent = 'Open this page as a browser extension popup to access your bookmarks.';
+  currentFolderSubtitle.textContent = 'Open this page as a browser extension page to access your bookmarks.';
   statusBar.innerHTML = `
     <div><strong>Bookmark access unavailable.</strong> This page must be opened from the extension icon.</div>
     <div style="margin-top: 8px;">Please install or reload the unpacked extension, then click the toolbar icon. If permission is disabled, open the extension details and ensure <code>Bookmarks</code> is allowed.</div>
-    <div style="margin-top: 8px;">You can still use the button below to open the full-screen bookmark manager once the extension is loaded correctly.</div>
   `;
   cards.innerHTML = `
     <div class="empty">
       <div style="font-size: 18px; color: var(--text); margin-bottom: 10px;">No extension context detected</div>
       <div>Do not open <code>index.html</code> directly. Load the folder as an unpacked extension and launch it from the browser toolbar.</div>
-      <div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-        <button id="fallbackOpenFullPageBtn" class="search button-like">Open full page</button>
-      </div>
     </div>
   `;
   folderList.innerHTML = `
@@ -140,7 +127,6 @@ function renderPermissionHelp() {
       <span class="folder-count">0</span>
     </div>
   `;
-  document.getElementById('fallbackOpenFullPageBtn')?.addEventListener('click', openFullPage);
 }
 
 function getVisibleBookmarks() {
@@ -171,7 +157,6 @@ function renderFolderNodes(nodes, parentPath = [], depth = 0) {
           ${toggle}
           <span class="folder-icon"><img src="assets/icons/folder.png" alt="" /></span>
           <span class="folder-name">${escapeHtml(node.title)}</span>
-          <button class="inline-action icon-action" data-rename-folder-id="${node.id}" data-folder-title="${escapeHtml(node.title)}" aria-label="Rename folder" title="Rename folder"><img src="assets/icons/edit.png" alt="" /></button>
           <span class="folder-count">${node.count}</span>
         </div>
         ${childMarkup}
@@ -236,19 +221,6 @@ function updateActivePath() {
   pathDepthLabel.textContent = `${state.activePath.length} level${state.activePath.length === 1 ? '' : 's'}`;
 }
 
-function formatLastVisited(dateAdded) {
-  if (!dateAdded) return 'Recently saved';
-  const delta = Date.now() - dateAdded;
-  const days = Math.max(0, Math.floor(delta / 86400000));
-  if (days === 0) return 'Today';
-  if (days === 1) return '1 day ago';
-  if (days < 7) return `${days} days ago`;
-  const weeks = Math.floor(days / 7);
-  if (weeks < 5) return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
-  const months = Math.floor(days / 30);
-  return `${months} month${months === 1 ? '' : 's'} ago`;
-}
-
 function renderCards() {
   if (state.loading) {
     currentFolderName.textContent = 'Loading bookmarks…';
@@ -271,19 +243,15 @@ function renderCards() {
 
   cards.innerHTML = visible.length ? visible.map(item => {
     const favicon = getFaviconUrl(item.url);
-    const showPath = state.activeFolderId === 'all';
     return `
       <article class="card" data-url="${escapeHtml(item.url)}" data-bookmark-id="${escapeHtml(item.id)}" data-bookmark-title="${escapeHtml(item.title)}">
         <div class="card-logo-shell">
           <img class="card-logo" src="${escapeHtml(favicon)}" alt="${escapeHtml(item.domain)} logo" loading="lazy" />
         </div>
         <div>
-          <div class="meta">${showPath ? escapeHtml(item.folderPath) : escapeHtml(formatLastVisited(item.dateAdded))}</div>
           <h3 title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h3>
           <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer" title="${escapeHtml(item.domain)}">${escapeHtml(item.domain)}</a>
-          <button class="inline-action icon-action" data-rename-bookmark-id="${escapeHtml(item.id)}" data-bookmark-title="${escapeHtml(item.title)}" aria-label="Rename bookmark" title="Rename bookmark"><img src="assets/icons/edit.png" alt="" /></button>
         </div>
-        <div class="desc" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</div>
       </article>
     `;
   }).join('') : '<div class="empty">No bookmarks found in this directory.</div>';
@@ -301,7 +269,7 @@ function loadBookmarks() {
 
   if (!globalThis.chrome?.bookmarks?.getTree) {
     state.loading = false;
-    state.error = 'Bookmark API is unavailable. This page must be opened from the extension popup, not as a normal HTML file.';
+    state.error = 'Bookmark API is unavailable. This page must be opened from the installed extension, not as a normal HTML file.';
     statusBar.textContent = state.error;
     renderPermissionHelp();
     return;
@@ -348,7 +316,6 @@ function loadBookmarks() {
               url: child.url,
               folderPath,
               domain: getDomain(child.url),
-              dateAdded: child.dateAdded ? Number(child.dateAdded) : null,
             });
           }
         }
@@ -366,7 +333,6 @@ function loadBookmarks() {
             url: child.url,
             folderPath: 'Bookmarks bar',
             domain: getDomain(child.url),
-            dateAdded: child.dateAdded ? Number(child.dateAdded) : null,
           });
         }
       });
@@ -406,24 +372,64 @@ searchInput.addEventListener('input', event => {
   renderCards();
 });
 
-document.addEventListener('click', event => {
-  const folderButton = event.target.closest?.('[data-rename-folder-id]');
-  if (folderButton) {
+function hideContextMenu() {
+  document.getElementById('contextMenu')?.remove();
+}
+
+function showContextMenu(event, config) {
+  hideContextMenu();
+  const menu = document.createElement('div');
+  menu.id = 'contextMenu';
+  menu.className = 'context-menu';
+  menu.style.left = `${event.clientX}px`;
+  menu.style.top = `${event.clientY}px`;
+  menu.innerHTML = `
+    <button type="button" data-menu-action="rename">
+      <img src="assets/icons/edit.png" alt="" />
+      <span>Rename</span>
+    </button>
+  `;
+  document.body.appendChild(menu);
+  menu.querySelector('[data-menu-action="rename"]')?.addEventListener('click', clickEvent => {
+    clickEvent.preventDefault();
+    clickEvent.stopPropagation();
+    hideContextMenu();
+    config.onRename();
+  });
+
+  const rect = menu.getBoundingClientRect();
+  const left = Math.min(event.clientX, window.innerWidth - rect.width - 12);
+  const top = Math.min(event.clientY, window.innerHeight - rect.height - 12);
+  menu.style.left = `${Math.max(12, left)}px`;
+  menu.style.top = `${Math.max(12, top)}px`;
+}
+
+document.addEventListener('contextmenu', event => {
+  const folderItem = event.target.closest?.('.folder-item[data-folder-id]:not([data-folder-id="all"])');
+  if (folderItem) {
     event.preventDefault();
     event.stopPropagation();
-    renameFolder(folderButton.dataset.renameFolderId, folderButton.dataset.folderTitle || 'Folder');
+    showContextMenu(event, {
+      onRename: () => renameFolder(folderItem.dataset.folderId, folderItem.querySelector('.folder-name')?.textContent || 'Folder'),
+    });
     return;
   }
-  const bookmarkButton = event.target.closest?.('[data-rename-bookmark-id]');
-  if (bookmarkButton) {
+
+  const card = event.target.closest?.('.card[data-bookmark-id]');
+  if (card) {
     event.preventDefault();
     event.stopPropagation();
-    renameBookmark(bookmarkButton.dataset.renameBookmarkId, bookmarkButton.dataset.bookmarkTitle || 'Bookmark');
-    return;
+    showContextMenu(event, {
+      onRename: () => renameBookmark(card.dataset.bookmarkId, card.dataset.bookmarkTitle || 'Bookmark'),
+    });
   }
 });
 
-openFullPageBtn?.addEventListener('click', openFullPage);
+document.addEventListener('click', hideContextMenu);
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') hideContextMenu();
+});
+
 themeToggleBtn?.addEventListener('change', event => applyTheme(event.target.checked ? 'dark' : 'light'));
 viewModeToggleBtn?.addEventListener('click', () => applyViewMode(state.viewMode === 'grid' ? 'list' : 'grid'));
 

@@ -4,15 +4,11 @@
   "version": "1.0.2",
   "description": "A sleek bookmark management browser extension.",
   "action": {
-    "default_title": "Ultimate Bookmark",
-    "default_popup": "index.html"
+    "default_title": "Ultimate Bookmark"
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "permissions": ["bookmarks", "tabs"],
-  "web_accessible_resources": [
-    {
-      "resources": ["fullscreen.html", "app.js"],
-      "matches": ["<all_urls>"]
-    }
-  ],
   "minimum_chrome_version": "114"
 }

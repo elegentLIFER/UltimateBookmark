@@ -38,12 +38,13 @@
           linear-gradient(135deg, color-mix(in srgb, var(--bg) 92%, #000 8%) 0%, var(--bg) 40%, color-mix(in srgb, var(--bg) 84%, #1f2937 16%) 100%);
         color: var(--text);
       }
-      .app { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; padding: 24px; gap: 20px; }
+      .app { display: grid; grid-template-columns: 420px 1fr; min-height: 100vh; padding: 24px; gap: 20px; }
       .sidebar, .content { border: 1px solid var(--border); background: var(--panel); backdrop-filter: blur(18px); box-shadow: var(--shadow); border-radius: 24px; }
       .sidebar { padding: 22px; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 24px; height: calc(100vh - 48px); overflow: hidden; min-width: 0; }
       .brand { display: flex; align-items: center; gap: 12px; }
       .brand-badge { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
       .brand h1 { margin: 0; font-size: 18px; }
+      .brand-underline { width: 96px; height: 12px; object-fit: contain; display: block; margin-top: 2px; }
       .brand p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
       .sidebar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
       .toolbar-inline { display: inline-flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--panel); }
@@ -99,27 +100,29 @@
       .search::placeholder { color: color-mix(in srgb, var(--muted) 78%, transparent); }
       .button-like { width: auto; cursor: pointer; white-space: nowrap; padding-inline: 18px; }
       .inline-action { margin-top: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; padding: 6px 10px; cursor: pointer; font-size: 12px; width: fit-content; }
-      .folder-item .inline-action { margin-left: auto; flex: 0 0 28px; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
-      .folder-item:hover .inline-action, .folder-item.active .inline-action { opacity: 1; pointer-events: auto; }
       .icon-action { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
       .icon-action img { width: 16px; height: 16px; display: block; }
+      .context-menu { position: fixed; z-index: 9999; min-width: 150px; padding: 8px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); box-shadow: 0 18px 44px rgba(0,0,0,0.18); backdrop-filter: blur(18px); }
+      .context-menu button { width: 100%; border: none; border-radius: 10px; background: transparent; color: var(--text); padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; font: inherit; text-align: left; }
+      .context-menu button:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+      .context-menu img { width: 16px; height: 16px; }
       .status { padding: 14px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font-size: 14px; }
       .cards { display: grid; gap: 18px; overflow: auto; padding: 14px 6px 6px 0; }
-      body[data-layout='grid'] .cards { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+      body[data-layout='grid'] .cards { grid-template-columns: repeat(auto-fill, minmax(260px, 320px)); align-content: start; justify-content: start; }
       body[data-layout='list'] .cards { grid-template-columns: 1fr; }
-      .card { border-radius: 22px; padding: 20px; min-height: 160px; background: var(--panel); border: 1px solid var(--border); position: relative; overflow: hidden; cursor: pointer; transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: space-between; }
-      body[data-layout='list'] .card { min-height: 72px; padding: 12px 16px; display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 12px; }
+      .card { border-radius: 22px; padding: 20px; min-height: 160px; background: var(--panel); border: 1px solid var(--border); position: relative; overflow: hidden; cursor: pointer; transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      body[data-layout='list'] .card { min-height: 72px; padding: 12px 16px; display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; justify-content: stretch; text-align: left; gap: 12px; }
       .card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08)); pointer-events: none; }
-      .card-logo-shell { width: 52px; height: 52px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 12%, var(--panel)); display: grid; place-items: center; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
-      body[data-layout='list'] .card-logo-shell { margin-bottom: 0; width: 36px; height: 36px; border-radius: 12px; }
+      .card-logo-shell { width: 52px; height: 52px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 12%, var(--panel)); display: grid; place-items: center; margin: 0 auto 14px; border: 1px solid var(--border); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+      body[data-layout='list'] .card-logo-shell { margin: 0; width: 36px; height: 36px; border-radius: 12px; }
       .card-logo { width: 32px; height: 32px; object-fit: contain; }
       body[data-layout='list'] .card-logo { width: 22px; height: 22px; }
-      .card > * { position: relative; z-index: 1; min-width: 0; }
+      .card > * { position: relative; z-index: 1; min-width: 0; max-width: 100%; }
       .card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 24px 48px rgba(0,0,0,0.14); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
-      .card .meta { color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .card h3 { margin: 10px 0 8px; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .card a { color: color-mix(in srgb, var(--accent) 74%, var(--text)); text-decoration: none; word-break: break-word; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
-      .card .desc { color: var(--muted); font-size: 14px; line-height: 1.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .card .meta { color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+      .card h3 { margin: 10px 0 8px; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+      .card a { color: color-mix(in srgb, var(--accent) 74%, var(--text)); text-decoration: none; word-break: break-word; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 100%; }
+      .card .desc { color: var(--muted); font-size: 14px; line-height: 1.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
       body[data-layout='list'] .card .desc { display: none; }
       body[data-layout='list'] .card h3 { margin: 0 0 4px; font-size: 16px; }
       body[data-layout='list'] .card .meta { font-size: 11px; }
@@ -141,7 +144,6 @@
       <aside class="sidebar">
         <div class="sidebar-top">
           <div class="brand">
-            <div class="brand-badge"></div>
             <div>
               <h1>UltimateBookmark</h1>
             </div>
