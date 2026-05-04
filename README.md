@@ -80,19 +80,6 @@ The extension uses the following Chrome permissions:
 - `bookmarks`: required to read and rename bookmarks and bookmark folders.
 - `tabs`: required to open the full-screen manager tab from the extension icon.
 
-## Publishing to Chrome Web Store
-
-To publish the extension:
-
-1. Make sure `manifest.json` has the correct `name`, `description`, and `version`.
-2. Test the extension locally with **Load unpacked**.
-3. Create a ZIP package containing the extension files, excluding `.git` and other local-only files.
-4. Go to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/).
-5. Pay the one-time developer registration fee if you have not registered before.
-6. Create a new item and upload the ZIP file.
-7. Fill in the store listing, screenshots, privacy practices, and distribution settings.
-8. Submit for review.
-
 ## Notes
 
 - This project is dependency-free and uses plain HTML, CSS, and JavaScript.
