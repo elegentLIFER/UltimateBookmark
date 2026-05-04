@@ -63,6 +63,8 @@
         position: sticky;
         top: 24px;
         height: calc(100vh - 48px);
+        overflow: hidden;
+        min-width: 0;
       }
       .brand { display: flex; align-items: center; gap: 12px; }
       .brand-badge {
@@ -93,43 +95,42 @@
         align-items: center;
         gap: 10px;
       }
-      .theme-switch-label { color: var(--muted); font-size: 13px; }
+      .icon-btn {
+        width: 56px;
+        height: 56px;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--panel-strong);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+      .icon-btn:hover,
+      .view-toggle:hover {
+        transform: translateY(-2px);
+        background: color-mix(in srgb, var(--accent) 10%, var(--panel-strong));
+        border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.10);
+      }
+      .icon-btn img { width: 22px; height: 22px; display: block; }
       .switch {
         position: relative;
-        width: 52px;
-        height: 30px;
-        display: inline-block;
+        width: 48px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       .switch input { opacity: 0; width: 0; height: 0; }
-      .slider {
-        position: absolute;
-        inset: 0;
-        background: color-mix(in srgb, var(--muted) 28%, var(--panel-strong));
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        cursor: pointer;
-        transition: 180ms ease;
-      }
-      .slider::before {
-        content: '';
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 3px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: #fff;
-        border-radius: 50%;
-        box-shadow: 0 6px 14px rgba(0,0,0,0.18);
-        transition: 180ms ease;
-      }
-      .switch input:checked + .slider { background: color-mix(in srgb, var(--accent) 65%, var(--panel-strong)); }
-      .switch input:checked + .slider::before { transform: translate(22px, -50%); }
       .path-panel {
         display: flex;
         flex-direction: column;
         gap: 10px;
         min-height: 0;
+        min-width: 0;
       }
       .path-title {
         display: flex;
@@ -145,14 +146,16 @@
         flex-direction: column;
         gap: 8px;
         overflow-y: auto;
-        padding-right: 6px;
+        overflow-x: hidden;
+        padding: 2px 18px 2px 2px;
         scrollbar-gutter: stable;
+        min-width: 0;
       }
       .folder-list::-webkit-scrollbar { width: 8px; }
       .folder-list::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 40%, transparent); border-radius: 999px; }
       .folder-item {
-        padding: 12px 14px;
-        gap: 10px;
+        padding: 12px 10px;
+        gap: 8px;
         border-radius: 16px;
         color: var(--text);
         background: color-mix(in srgb, var(--panel-strong) 65%, transparent);
@@ -162,9 +165,13 @@
         align-items: center;
         cursor: pointer;
         user-select: none;
+        min-width: 0;
+        width: calc(100% - 8px);
+        max-width: calc(100% - 8px);
+        overflow: hidden;
       }
       .folder-item:hover, .folder-item.active {
-        transform: translateX(4px);
+        transform: translateX(2px);
         background: color-mix(in srgb, var(--accent) 15%, var(--panel-strong));
         border-color: color-mix(in srgb, var(--accent) 26%, transparent);
       }
@@ -172,12 +179,23 @@
       .folder-item .inline-action,
       .card .inline-action {
         margin-left: auto;
+        flex: 0 0 auto;
       }
-      .toolbar-inline .search,
-      .toolbar-inline .view-toggle {
-        height: 42px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+      .folder-item .inline-action {
+        flex-basis: 28px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 160ms ease;
+      }
+      .folder-item:hover .inline-action,
+      .folder-item.active .inline-action {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .toolbar-inline .search {
+        height: 56px;
+        padding-top: 0;
+        padding-bottom: 0;
       }
       .icon-action {
         width: 28px;
@@ -192,10 +210,12 @@
         padding: 0;
         line-height: 1;
       }
+      .icon-action img { width: 16px; height: 16px; display: block; }
       .folder-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; font-weight: 600; }
       body[data-layout='list'] .folder-name { font-size: 13px; }
-      .folder-count { color: var(--muted); font-size: 12px; }
-      .folder-icon { width: 18px; flex: 0 0 18px; display: inline-flex; align-items: center; justify-content: center; }
+      .folder-count { color: var(--muted); font-size: 12px; flex: 0 0 24px; text-align: right; }
+      .folder-icon { width: 24px; flex: 0 0 24px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+      .folder-icon img { width: 22px; height: 22px; object-fit: contain; display: block; }
       .folder-toggle {
         border: none;
         background: rgba(255,255,255,0.06);
@@ -226,12 +246,20 @@
       .header .subtitle { margin-top: 8px; color: var(--muted); }
       .view-toggle {
         border: 1px solid var(--border);
-        background: var(--panel);
+        background: var(--panel-strong);
         color: var(--text);
         border-radius: 16px;
-        padding: 14px 16px;
+        padding: 0;
+        width: 56px;
+        height: 56px;
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
       }
+      .view-toggle img { width: 22px; height: 22px; display: block; }
       .search {
         width: min(360px, 100%);
         padding: 14px 16px;
@@ -266,7 +294,7 @@
         display: grid;
         gap: 18px;
         overflow: auto;
-        padding-right: 6px;
+        padding: 14px 6px 6px 0;
       }
       body[data-layout='grid'] .cards {
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -333,11 +361,11 @@
         min-width: 0;
       }
       .card:hover {
-        transform: translateY(-10px) scale(1.01);
+        transform: translateY(-6px) scale(1.01);
         box-shadow: 0 24px 48px rgba(0,0,0,0.14);
         border-color: color-mix(in srgb, var(--accent) 35%, transparent);
       }
-      .card .meta { color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+      .card .meta { color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .card h3 {
         margin: 10px 0 8px;
         font-size: 18px;
@@ -414,10 +442,9 @@
             </div>
           </div>
           <div class="theme-switch">
-            <span class="theme-switch-label">Light</span>
             <label class="switch" aria-label="Toggle dark mode">
               <input id="themeToggleBtn" type="checkbox" />
-              <span class="slider"></span>
+              <span class="icon-btn"><img src="assets/icons/modeswtich.png" alt="" /></span>
             </label>
           </div>
         </div>
@@ -437,7 +464,7 @@
           </div>
           <div class="toolbar-inline">
             <input class="search" id="searchInput" type="search" placeholder="Search bookmarks..." />
-            <button id="viewModeToggleBtn" class="view-toggle">Grid</button>
+            <button id="viewModeToggleBtn" class="view-toggle" aria-label="Switch view mode"></button>
             <button id="openFullPageBtn" class="search button-like">Open full page</button>
           </div>
         </div>

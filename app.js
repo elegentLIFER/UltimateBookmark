@@ -102,12 +102,17 @@ function renameFolder(id, currentName) {
   });
 }
 
+const GRID_ICON = 'assets/icons/grid.png';
+const LIST_ICON = 'assets/icons/list.png';
+
 function applyViewMode(mode) {
   state.viewMode = mode;
   document.body.dataset.layout = mode;
   localStorage.setItem(VIEW_MODE_KEY, mode);
   if (viewModeToggleBtn) {
-    viewModeToggleBtn.textContent = mode === 'grid' ? 'Grid' : 'List';
+    viewModeToggleBtn.innerHTML = `<img src="${mode === 'grid' ? GRID_ICON : LIST_ICON}" alt="" />`;
+    viewModeToggleBtn.setAttribute('aria-label', mode === 'grid' ? 'Switch to list view' : 'Switch to grid view');
+    viewModeToggleBtn.title = mode === 'grid' ? 'Switch to list view' : 'Switch to grid view';
   }
 }
 
@@ -130,7 +135,7 @@ function renderPermissionHelp() {
   `;
   folderList.innerHTML = `
     <div class="folder-item active">
-      <span class="folder-icon">📁</span>
+      <span class="folder-icon"><img src="assets/icons/folder.png" alt="" /></span>
       <span class="folder-name">Extension mode</span>
       <span class="folder-count">0</span>
     </div>
@@ -149,10 +154,6 @@ function getVisibleBookmarks() {
   });
 }
 
-function folderIcon(depth) {
-  return depth === 0 ? '📁' : depth === 1 ? '🗂️' : '📄';
-}
-
 function renderFolderNodes(nodes, parentPath = [], depth = 0) {
   return nodes.map(node => {
     const isActive = node.id === state.activeFolderId;
@@ -168,9 +169,9 @@ function renderFolderNodes(nodes, parentPath = [], depth = 0) {
       <div class="folder-node ${pathIsActive ? 'folder-path-active' : ''}">
         <div class="folder-item ${isActive ? 'active' : ''}" data-folder-id="${node.id}" style="padding-left: ${16 + depth * 12}px;">
           ${toggle}
-          <span class="folder-icon">${folderIcon(depth)}</span>
+          <span class="folder-icon"><img src="assets/icons/folder.png" alt="" /></span>
           <span class="folder-name">${escapeHtml(node.title)}</span>
-          <button class="inline-action icon-action" data-rename-folder-id="${node.id}" data-folder-title="${escapeHtml(node.title)}" aria-label="Rename folder" title="Rename folder">✎</button>
+          <button class="inline-action icon-action" data-rename-folder-id="${node.id}" data-folder-title="${escapeHtml(node.title)}" aria-label="Rename folder" title="Rename folder"><img src="assets/icons/edit.png" alt="" /></button>
           <span class="folder-count">${node.count}</span>
         </div>
         ${childMarkup}
@@ -235,6 +236,19 @@ function updateActivePath() {
   pathDepthLabel.textContent = `${state.activePath.length} level${state.activePath.length === 1 ? '' : 's'}`;
 }
 
+function formatLastVisited(dateAdded) {
+  if (!dateAdded) return 'Recently saved';
+  const delta = Date.now() - dateAdded;
+  const days = Math.max(0, Math.floor(delta / 86400000));
+  if (days === 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  if (days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
+  const months = Math.floor(days / 30);
+  return `${months} month${months === 1 ? '' : 's'} ago`;
+}
+
 function renderCards() {
   if (state.loading) {
     currentFolderName.textContent = 'Loading bookmarks…';
@@ -257,16 +271,17 @@ function renderCards() {
 
   cards.innerHTML = visible.length ? visible.map(item => {
     const favicon = getFaviconUrl(item.url);
+    const showPath = state.activeFolderId === 'all';
     return `
       <article class="card" data-url="${escapeHtml(item.url)}" data-bookmark-id="${escapeHtml(item.id)}" data-bookmark-title="${escapeHtml(item.title)}">
         <div class="card-logo-shell">
           <img class="card-logo" src="${escapeHtml(favicon)}" alt="${escapeHtml(item.domain)} logo" loading="lazy" />
         </div>
         <div>
-          <div class="meta">${escapeHtml(item.folderPath)}</div>
+          <div class="meta">${showPath ? escapeHtml(item.folderPath) : escapeHtml(formatLastVisited(item.dateAdded))}</div>
           <h3 title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h3>
           <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer" title="${escapeHtml(item.domain)}">${escapeHtml(item.domain)}</a>
-          <button class="inline-action icon-action" data-rename-bookmark-id="${escapeHtml(item.id)}" data-bookmark-title="${escapeHtml(item.title)}" aria-label="Rename bookmark" title="Rename bookmark">✎</button>
+          <button class="inline-action icon-action" data-rename-bookmark-id="${escapeHtml(item.id)}" data-bookmark-title="${escapeHtml(item.title)}" aria-label="Rename bookmark" title="Rename bookmark"><img src="assets/icons/edit.png" alt="" /></button>
         </div>
         <div class="desc" title="${escapeHtml(item.url)}">${escapeHtml(item.url)}</div>
       </article>
@@ -333,6 +348,7 @@ function loadBookmarks() {
               url: child.url,
               folderPath,
               domain: getDomain(child.url),
+              dateAdded: child.dateAdded ? Number(child.dateAdded) : null,
             });
           }
         }
@@ -350,6 +366,7 @@ function loadBookmarks() {
             url: child.url,
             folderPath: 'Bookmarks bar',
             domain: getDomain(child.url),
+            dateAdded: child.dateAdded ? Number(child.dateAdded) : null,
           });
         }
       });
